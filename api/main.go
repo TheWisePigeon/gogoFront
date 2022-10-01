@@ -1,29 +1,57 @@
 package handler
 
 import (
-  "fmt"
-  "net/http"
-  "context"
-  "go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"context"
+	"fmt"
+	"log"
+	"net/http"
+	"strings"
+
+	"encoding/json"
+	firebase "firebase.google.com/go"
+	"google.golang.org/api/option"
+	"io"
+
+	"github.com/google/uuid"
 )
 
+type longUrl struct {
+	Url string
+}
+
 func Handler(w http.ResponseWriter, r *http.Request) {
-  const uri = "mongodb://localhost:27017"
-  client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	ctx := context.Background()
+	sa := option.WithCredentialsFile("C:/Users/TheWisePigeon/Documents/gogoFront/api/creds.json")
+	app, err := firebase.NewApp(ctx, nil, sa)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
-	defer func() {
-		if err = client.Disconnect(context.TODO()); err != nil {
-			panic(err)
-		}
-	}()
-	// Ping the primary
-	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
-		panic(err)
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		log.Fatalln(err)
 	}
-	fmt.Println("Successfully connected and pinged.")
-  fmt.Fprintf(w, "<h1>Hello from Go!</h1>")
+	defer client.Close()
+	requestBody, err := (io.ReadAll(r.Body))
+	if err != nil {
+		log.Fatalf("Something went wrong %v", err)
+	}
+	var url longUrl
+	var generated = uuid.New().String()
+	generated = strings.Split(generated, "-")[0]
+	fmt.Println(generated)
+	err = json.Unmarshal(requestBody, &url)
+	if err != nil {
+		log.Fatalf(`Something went wrong %v`, err)
+	}
+
+	_, _, err = client.Collection("links").Add(ctx, map[string]interface{}{
+		"url": url.Url,
+		"short":  generated,
+	})
+
+	if err != nil {
+		log.Fatalf("Failed adding alovelace: %v", err)
+	}
+
+	fmt.Fprint(w, generated)
 }
