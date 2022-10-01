@@ -17,6 +17,7 @@ import (
 
 type longUrl struct {
 	Url string
+	Short string
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
@@ -39,6 +40,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	var generated = uuid.New().String()
 	generated = strings.Split(generated, "-")[0]
 	fmt.Println(generated)
+	url.Short = generated
 	err = json.Unmarshal(requestBody, &url)
 	if err != nil {
 		log.Fatalf(`Something went wrong %v`, err)
@@ -53,5 +55,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Failed adding alovelace: %v", err)
 	}
 
-	fmt.Fprint(w, generated)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(url)
 }
