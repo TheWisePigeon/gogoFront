@@ -2,9 +2,8 @@ package handler
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"net/http"
+	"log"
 	"strings"
 
 	"encoding/json"
@@ -39,7 +38,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	var url longUrl
 	var generated = uuid.New().String()
 	generated = strings.Split(generated, "-")[0]
-	fmt.Println(generated)
 	url.Short = generated
 	err = json.Unmarshal(requestBody, &url)
 	if err != nil {
