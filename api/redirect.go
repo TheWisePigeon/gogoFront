@@ -62,6 +62,6 @@ func Redirect(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "<h1>Link deleted or disabled</h1>")
 		return
 	}
-	// urlToBeRedirectedTo  := fmt.Sprint(foundValues[0]["url"])
-	http.Redirect(w, r, "https://google.com", http.StatusFound)
+	urlToBeRedirectedTo  := fmt.Sprint(foundValues[0]["url"])
+	http.Redirect(w, r, urlToBeRedirectedTo, http.StatusFound)
 }
